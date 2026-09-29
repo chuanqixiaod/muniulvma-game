@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0a08">
+<title>木牛流马 · 结算</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body {
+    background: #faf6ee;
+    display: flex; justify-content: center;
+    height: 100%;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+    touch-action: manipulation;
+  }
+  :root {
+    --ink: #1a0f05;
+    --ink-light: #3d2e1f;
+    --paper: #faf6ee;
+    --paper-hot: #ffffff;
+    --cinnabar: #c0392b;
+    --cinnabar-deep: #8b2920;
+    --jade: #5a8a7a;
+    --gold-bright: #cd7f32;
+  }
+
+  .phone {
+    width: 100%;
+    max-width: 420px;
+    height: 100dvh;
+    min-height: -webkit-fill-available;
+    background: var(--paper);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  /* 宣纸纹理 + 水墨晕染（透明度减半） */
+  .phone::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 30% 70%, rgba(139,90,43,0.02) 0.5px, transparent 1px),
+      radial-gradient(circle at 70% 30%, rgba(139,90,43,0.015) 0.5px, transparent 1px),
+      radial-gradient(ellipse 200px 100px at 10% 90%, rgba(90,74,58,0.04), transparent 70%),
+      radial-gradient(ellipse 160px 80px at 90% 10%, rgba(192,57,43,0.025), transparent 70%);
+    background-size: 8px 8px, 12px 12px, 100% 100%, 100% 100%;
+    pointer-events: none; z-index: 1;
+  }
+  .phone::after {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid rgba(90,74,58,0.12);
+    pointer-events: none; z-index: 1;
+  }
+
+  .bg-gear { position: absolute; opacity: 0.2; z-index: 0; pointer-events: none; }
+  .bg-gear.g1 { top: 60px; left: -30px; width: 160px; height: 160px; }
+  .bg-gear.g2 { top: 160px; right: -40px; width: 120px; height: 120px; }
+  .bg-gear.g3 { bottom: 80px; left: -20px; width: 100px; height: 100px; }
+  .bg-gear.g4 { bottom: 180px; right: -20px; width: 90px; height: 90px; }
+  .bg-gear svg { width: 100%; height: 100%; }
+
+  /* 结果卡片 — 竹简样式 */
+  .card {
+    position: relative; z-index: 2; width: 290px;
+    background: var(--paper-hot);
+    border: 1px solid rgba(90,74,58,0.3);
+    border-radius: 12px;
+    padding: 36px 24px 28px; text-align: center;
+    box-shadow:
+      0 8px 30px rgba(90,74,58,0.2),
+      0 1px 0 rgba(255,255,255,0.9) inset,
+      0 -1px 0 rgba(90,74,58,0.15) inset;
+    animation: cardIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes cardIn { 0% { opacity: 0; transform: translateY(40px) scale(0.9); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+  .card .rivet { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--cinnabar); box-shadow: 0 0 4px rgba(192,57,43,0.3); }
+  .card .rivet.tl { top: 8px; left: 8px; }
+  .card .rivet.tr { top: 8px; right: 8px; }
+  .card .rivet.bl { bottom: 8px; left: 8px; }
+  .card .rivet.br { bottom: 8px; right: 8px; }
+
+  /* 徽章 — 青瓷玉璧 */
+  .badge { width: 90px; height: 90px; margin: 0 auto 16px; position: relative; animation: badgeDrop 0.5s ease-out 0.3s both; }
+  @keyframes badgeDrop { 0% { opacity: 0; transform: translateY(-30px) scale(0.5); } 60% { opacity: 1; transform: translateY(4px) scale(1.05); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+  .badge .outer {
+    width: 100%; height: 100%;
+    background: linear-gradient(145deg, var(--jade), #35504a);
+    border: 3px solid rgba(90,74,58,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(90,138,122,0.3), inset 0 2px 4px rgba(255,255,255,0.2);
+  }
+  .badge .inner {
+    width: 66px; height: 66px;
+    background: radial-gradient(circle, #d4e8e0, #b8d0c8);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "STKaiti", serif; font-size: 24px;
+    color: var(--jade); font-weight: bold;
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.4);
+  }
+  .badge .ring {
+    position: absolute; inset: -4px;
+    border: 2px dashed var(--jade);
+    border-radius: 50%;
+    opacity: 0.4;
+  }
+
+  /* 标题 */
+  .result-title {
+    font-family: "STKaiti", serif;
+    font-size: 24px; color: var(--jade);
+    letter-spacing: 6px; margin-bottom: 4px;
+    animation: fadeUp 0.5s ease-out 0.5s both;
+  }
+  .result-sub {
+    font-size: 12px; color: var(--ink-light);
+    letter-spacing: 2px;
+    animation: fadeUp 0.5s ease-out 0.6s both;
+  }
+  @keyframes fadeUp { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+  .line {
+    width: 80px; height: 20px; margin: 18px auto;
+    background: var(--cinnabar); border-radius: 2px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset;
+    animation: fadeUp 0.5s ease-out 0.7s both;
+  }
+
+  /* 星星 */
+  .stars { display: flex; justify-content: center; gap: 10px; margin-bottom: 22px; }
+  .star { width: 46px; height: 46px; animation: starPop 0.5s ease-out both; }
+  .star:nth-child(1) { animation-delay: 0.7s; }
+  .star:nth-child(2) { animation-delay: 0.9s; }
+  .star:nth-child(3) { animation-delay: 1.1s; }
+  @keyframes starPop { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 60% { transform: scale(1.2) rotate(20deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+  .star svg { width: 100%; height: 100%; }
+  .star.on svg { color: var(--gold-bright); filter: drop-shadow(0 0 8px rgba(205,127,50,0.4)); }
+  .star.off svg { color: rgba(139,90,43,0.2); }
+
+  /* 数据 — 竹简签样式 */
+  .data { text-align: left; margin-bottom: 20px; }
+  .data-row {
+    display: flex; justify-content: space-between;
+    padding: 10px 14px; margin-bottom: 6px;
+    background: rgba(255,253,245,0.9);
+    border: 1px solid rgba(90,74,58,0.2);
+    border-radius: 6px;
+    font-size: 13px;
+    animation: fadeUp 0.4s ease-out both;
+  }
+  .data-row:nth-child(1) { animation-delay: 1.2s; }
+  .data-row:nth-child(2) { animation-delay: 1.3s; }
+  .data-row:nth-child(3) { animation-delay: 1.4s; }
+  .data-row .l { color: var(--ink-light); letter-spacing: 1px; }
+  .data-row .v { color: var(--ink); font-weight: 500; }
+  .data-row .v.perfect {
+    color: var(--cinnabar);
+    font-weight: 700;
+  }
+  .data-row.best {
+    background: rgba(205,127,50,0.08);
+    border-color: rgba(205,127,50,0.3);
+  }
+
+  /* 按钮 */
+  .btns { display: flex; gap: 10px; animation: fadeUp 0.4s ease-out 1.5s both; }
+  .btn {
+    flex: 1; height: 46px;
+    border: none; border-radius: 10px;
+    font-family: "STKaiti", serif;
+    font-size: 14px; letter-spacing: 3px;
+    cursor: pointer; transition: transform 0.1s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-secondary {
+    background: rgba(255,253,245,0.9);
+    color: var(--ink);
+    border: 1px solid rgba(90,74,58,0.25);
+  }
+  .btn-primary {
+    background: linear-gradient(145deg, var(--cinnabar), var(--cinnabar-deep));
+    color: #fff; font-weight: 600;
+    box-shadow: 0 3px 12px rgba(192,57,43,0.35);
+  }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* 失败版 */
+  .fail .badge .outer { background: linear-gradient(145deg, #c0392b, #8b2920); border-color: rgba(90,74,58,0.3); box-shadow: 0 6px 20px rgba(192,57,43,0.4); }
+  .fail .badge .inner { background: linear-gradient(145deg, #f0d0c8, #d49080); color: var(--cinnabar-deep); }
+  .fail .result-title { color: var(--cinnabar); }
+  .fail .star.on svg { color: var(--cinnabar); filter: drop-shadow(0 0 6px rgba(192,57,43,0.4)); }
+
+  /* 粒子 */
+  .spark { position: absolute; width: 4px; height: 4px; background: var(--cinnabar); border-radius: 50%; pointer-events: none; animation: spark 1.5s ease-out infinite; opacity: 0.6; }
+  @keyframes spark { 0% { opacity: 0.8; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-60px) scale(0); } }
+
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- 背景齿轮 -->
+  <!-- 水墨山水云纹装饰 -->
+  <div class="bg-gear g1"><svg viewBox="0 0 100 100" fill="none"><path d="M5,60 Q25,35 50,50 T95,40" stroke="#5a4a3a" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+  <div class="bg-gear g2"><svg viewBox="0 0 100 100" fill="none"><path d="M15,40 Q35,20 55,30 T85,25" stroke="#5a4a3a" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/><circle cx="70" cy="22" r="6" stroke="#c0392b" stroke-width="1.2" fill="none" opacity="0.4"/></svg></div>
+  <div class="bg-gear g3"><svg viewBox="0 0 100 100" fill="none"><path d="M10,75 Q30,55 50,65 T85,55" stroke="#5a4a3a" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.4"/></svg></div>
+  <div class="bg-gear g4"><svg viewBox="0 0 100 100" fill="none"><path d="M20,30 Q30,22 40,28" stroke="#5a4a3a" stroke-width="0.8" fill="none" opacity="0.3"/><path d="M55,40 Q65,32 75,38" stroke="#5a4a3a" stroke-width="0.8" fill="none" opacity="0.3"/></svg></div>
+
+  <!-- === 卡片（内容由 JS 根据 URL 动态填充）=== -->
+  <div class="card" id="card">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+
+    <div class="badge">
+      <div class="ring"></div>
+      <div class="outer"><div class="inner" id="sealChar">完</div></div>
+    </div>
+
+    <div class="result-title" id="rTitle">通关</div>
+    <div class="result-sub" id="rSub">—</div>
+    <div class="line"></div>
+
+    <div class="stars" id="rStars">
+      <div class="star on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+      <div class="star on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+      <div class="star on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+    </div>
+
+    <div class="data">
+      <div class="data-row best"><span class="l">你的指令数</span><span class="v perfect" id="vScore">—</span></div>
+      <div class="data-row"><span class="l">关卡最优解</span><span class="v" id="vOptimal">—</span></div>
+      <div class="data-row"><span class="l">历史记录</span><span class="v" id="vBest">—</span></div>
+    </div>
+
+    <div class="btns">
+      <button class="btn btn-secondary" onclick="location.href=prevGameUrl()">重玩</button>
+      <button class="btn btn-primary" id="btnNext" onclick="location.href=nextGameUrl()">下一关 →</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="levels.js"></script>
+<script>
+  // 从 URL 读取关卡
+  const params = new URLSearchParams(window.location.search);
+  const LEVEL_ID = params.get('level') || 'v1-3';
+  const lv = findLevelById(LEVEL_ID) || LEVELS[2];
+  const prog = loadProgress(LEVEL_ID);
+
+  const CHINESE_NUM = ['','一','二','三','四','五'];
+
+  // 填充标题
+  document.getElementById('rTitle').textContent = '通关 · ' + lv.title;
+  document.getElementById('rSub').textContent = `卷${CHINESE_NUM[lv.volume]} · 第 ${lv.index} 关`;
+
+  // 星星
+  const starsEl = document.getElementById('rStars');
+  starsEl.innerHTML = '';
+  for (let i = 1; i <= 3; i++) {
+    const s = document.createElement('div');
+    s.className = 'star ' + (prog.stars >= i ? 'on' : 'off');
+    s.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+    s.style.animationDelay = (0.7 + i * 0.2) + 's';
+    starsEl.appendChild(s);
+  }
+
+  // 数据
+  document.getElementById('vScore').textContent = prog.stars > 0 ? `${prog.score} 条` : '—';
+  document.getElementById('vOptimal').textContent = lv.optimal + ' 条';
+  document.getElementById('vBest').textContent = prog.stars > 0 ? `${prog.score} 条（最少）` : '未通关';
+
+  // 下一关按钮
+  const next = getNextLevel(lv);
+  const btnNext = document.getElementById('btnNext');
+  if (!next) {
+    btnNext.textContent = '全部通关 ✓';
+    btnNext.disabled = true;
+  } else {
+    btnNext.textContent = `下一关 · 第 ${next.index} 关 →`;
+  }
+
+  function nextGameUrl() { return next ? `game.html?level=${next.id}` : 'level-select.html'; }
+  function prevGameUrl() { return `game.html?level=${lv.id}`; }
+
+  // 粒子
+  const phone = document.querySelector('.phone');
+  for (let i = 0; i < 16; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    s.style.left = (40 + Math.random() * 300) + 'px';
+    s.style.top = (280 + Math.random() * 200) + 'px';
+    s.style.animationDelay = (Math.random() * 1.5) + 's';
+    s.style.background = Math.random() > 0.5 ? '#cd7f32' : '#4a7c59';
+    phone.appendChild(s);
+  }
+</script>
+</body>
+</html>

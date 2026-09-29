@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0a08">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-title" content="木牛流马">
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23b87333'/><text x='50' y='62' font-size='50' text-anchor='middle' fill='white'>🐂</text></svg>">
+<title>木牛流马 · 选卷</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body {
+    background: #faf6ee;
+    display: flex; justify-content: center;
+    height: 100%;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+    touch-action: manipulation;
+  }
+  :root {
+    --ink: #1a0f05;
+    --ink-light: #3d2e1f;
+    --paper: #faf6ee;
+    --paper-hot: #ffffff;
+    --wood: #8b5a2b;
+    --cinnabar: #c0392b;
+    --cinnabar-deep: #8b2920;
+    --jade: #5a8a7a;
+    --gold-bright: #cd7f32;
+  }
+
+  .phone {
+    width: 100%;
+    max-width: 420px;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+    background: var(--paper);
+    position: relative; overflow: hidden;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  /* 宣纸纹理 + 水墨晕染（透明度减半） */
+  .phone::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(139,90,43,0.02) 0.5px, transparent 1px),
+      radial-gradient(circle at 80% 80%, rgba(139,90,43,0.015) 0.5px, transparent 1px),
+      radial-gradient(ellipse 200px 100px at -5% 20%, rgba(90,74,58,0.04), transparent 70%),
+      radial-gradient(ellipse 160px 80px at 105% 85%, rgba(90,74,58,0.03), transparent 70%),
+      radial-gradient(ellipse 140px 60px at 95% 10%, rgba(90,74,58,0.025), transparent 70%),
+      /* 水墨远山剪影 */
+      linear-gradient(180deg, transparent 60%, rgba(90,74,58,0.02) 100%);
+    background-size: 8px 8px, 12px 12px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+    pointer-events: none; z-index: 1;
+  }
+  .phone::after {
+    content: ''; position: absolute; inset: 0;
+    border: 1px solid rgba(90,74,58,0.12);
+    pointer-events: none; z-index: 1;
+  }
+
+  /* 装饰水墨山水 */
+  .gear { position: absolute; z-index: 0; pointer-events: none; opacity: 0.25; }
+  .gear svg { width: 100%; height: 100%; }
+  .gear.left { top: 30px; left: -20px; width: 90px; height: 90px; }
+  .gear.right { top: 70px; right: -20px; width: 110px; height: 110px; }
+  @keyframes cloudDrift { 0%,100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+  .gear.right { animation: cloudDrift 6s ease-in-out infinite; }
+
+  /* 标题 */
+  .header { position: relative; z-index: 2; padding: 60px 24px 24px; text-align: center; }
+  .header h1 {
+    font-family: "STKaiti", "楷体", serif;
+    font-size: 30px; color: var(--ink);
+    letter-spacing: 8px; font-weight: 500;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .header .sub {
+    font-size: 12px; color: var(--ink-light);
+    letter-spacing: 4px; margin-top: 10px;
+  }
+  /* 朱砂分隔印 */
+  .header .divider {
+    width: 80px; height: 20px; margin: 18px auto 0;
+    background: var(--cinnabar);
+    border-radius: 2px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 2px 6px rgba(192,57,43,0.3);
+    position: relative;
+  }
+  .header .divider::before, .header .divider::after {
+    content: ''; position: absolute; top: 50%; width: 60px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--ink-light));
+  }
+  .header .divider::before { left: -70px; }
+  .header .divider::after { right: -70px; }
+
+  /* 列表 */
+  .list { position: relative; z-index: 2; padding: 0 18px 40px; }
+
+  .volume-block { margin-bottom: 20px; }
+  .vol-title {
+    font-family: "STKaiti", serif; font-size: 15px; color: var(--ink);
+    letter-spacing: 4px; padding-left: 8px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .vol-title::before { content: ''; width: 6px; height: 6px; background: var(--cinnabar); border-radius: 50%; flex-shrink: 0; }
+  .vol-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(90,74,58,0.3), transparent); }
+
+  .level-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  }
+
+  .level-card {
+    position: relative;
+    background: rgba(255,253,245,0.85);
+    border: 1px solid rgba(90,74,58,0.25);
+    border-radius: 8px; padding: 12px 8px;
+    text-align: center; cursor: pointer;
+    transition: all 0.18s;
+    box-shadow: 0 1px 3px rgba(90,74,58,0.1);
+  }
+  .level-card:active {
+    transform: scale(0.95);
+    background: var(--cinnabar);
+    border-color: var(--cinnabar-deep);
+    box-shadow: 0 2px 8px rgba(192,57,43,0.3);
+  }
+  .level-card:active .num, .level-card:active .name { color: #fff; }
+  .level-card.locked { opacity: 0.4; cursor: not-allowed; }
+
+  .level-card .num {
+    font-family: "STKaiti", serif; font-size: 22px;
+    color: var(--ink); font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .level-card.locked .num { color: var(--ink-light); }
+
+  .level-card .name {
+    font-size: 11px; color: var(--ink-light); margin-top: 4px;
+    letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .level-card.locked .name { color: rgba(90,74,58,0.4); }
+
+  .level-card .mini-stars {
+    display: flex; justify-content: center; gap: 2px; margin-top: 6px;
+  }
+  .level-card .mini-stars svg { width: 10px; height: 10px; }
+  .level-card .mini-stars .on { color: var(--gold-bright); }
+  .level-card .mini-stars .off { color: rgba(139,90,43,0.2); }
+
+  /* 当前正在玩的高亮 */
+  .level-card.current {
+    border-color: var(--cinnabar);
+    box-shadow: 0 0 0 2px rgba(192,57,43,0.15), 0 2px 10px rgba(192,57,43,0.2);
+    background: rgba(255,253,245,0.95);
+  }
+  .level-card.current::before {
+    content: '●'; position: absolute; top: 6px; right: 6px;
+    color: var(--cinnabar); font-size: 10px;
+    animation: currentPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes currentPulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+  /* 完成的印章 */
+  .level-card.done::after {
+    content: '完'; position: absolute; top: -4px; right: -4px;
+    width: 22px; height: 22px; border-radius: 4px;
+    background: var(--cinnabar); color: #fff;
+    font-family: "STKaiti", serif; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transform: rotate(-8deg);
+    box-shadow: 0 1px 3px rgba(192,57,43,0.4);
+    border: 1px solid var(--cinnabar-deep);
+  }
+
+  /* 底部装饰云纹 */
+  .bottom-gear { position: absolute; z-index: 0; pointer-events: none; opacity: 0.15; }
+  .bottom-gear.l { bottom: 10px; left: -30px; width: 130px; height: 130px; }
+  .bottom-gear.r { bottom: 30px; right: -40px; width: 110px; height: 110px; }
+  .bottom-gear svg { width: 100%; height: 100%; }
+
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- 装饰水墨山水 -->
+  <div class="gear left"><svg viewBox="0 0 100 100" fill="none"><path d="M5,80 Q20,50 35,65 T60,55 Q75,45 95,70" stroke="#5a4a3a" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M15,85 Q30,65 45,75" stroke="#5a4a3a" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.6"/><path d="M55,80 Q70,60 85,72" stroke="#5a4a3a" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.6"/></svg></div>
+  <div class="gear right"><svg viewBox="0 0 100 100" fill="none"><path d="M10,60 Q30,30 50,45 T85,35" stroke="#5a4a3a" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.5"/><circle cx="60" cy="25" r="8" stroke="#c0392b" stroke-width="1.5" fill="none" opacity="0.3"/><path d="M30,25 Q35,20 40,25" stroke="#5a4a3a" stroke-width="0.8" fill="none" opacity="0.4"/></svg></div>
+
+  <div class="header">
+    <h1>木牛流马</h1>
+    <div class="sub">墨者之巧 · 不在力而在法</div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <!-- 底部装饰齿轮 -->
+  <div class="bottom-gear l"><svg viewBox="0 0 100 100" fill="none"><path d="M5,70 Q20,45 35,55 T60,48 Q75,40 95,60" stroke="#5a4a3a" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.5"/><path d="M20,85 Q35,70 50,78" stroke="#5a4a3a" stroke-width="0.8" fill="none" opacity="0.4"/></svg></div>
+  <div class="bottom-gear r"><svg viewBox="0 0 100 100" fill="none"><path d="M10,50 Q25,35 45,42 T80,35" stroke="#5a4a3a" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.4"/><path d="M40,70 Q55,58 70,65" stroke="#5a4a3a" stroke-width="0.8" fill="none" opacity="0.3"/></svg></div>
+
+</div>
+
+<script src="levels.js"></script>
+<script>
+  const VOL_NAMES = ['', '入谷', '古道', '巧思', '诡道', '终卷'];
+  const CHINESE_NUM = ['','一','二','三','四','五'];
+
+  // 判断关卡是否锁定（前一关未通关就锁）
+  function isLocked(level) {
+    if (level.isDaily) return false; // 每日挑战永远不锁
+    const idx = LEVELS.indexOf(level);
+    if (idx === 0) return false; // 第一关永远解锁
+    const prev = LEVELS[idx - 1];
+    const progress = loadProgress(prev.id);
+    return progress.stars === 0;
+  }
+
+  // 渲染列表
+  function render() {
+    // 先注入今日每日挑战
+    if (typeof injectDailyChallenge === 'function') injectDailyChallenge();
+
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+
+    getVolumes().forEach(vol => {
+      const levels = getLevelsOfVolume(vol);
+
+      // 卷标题
+      const block = document.createElement('div');
+      block.className = 'volume-block';
+      if (vol === 99) {
+        block.innerHTML = `<div class="vol-title daily-title">⭐ 每日挑战</div>`;
+      } else {
+        block.innerHTML = `<div class="vol-title">第 ${CHINESE_NUM[vol]} 卷 · ${VOL_NAMES[vol] || ''}</div>`;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'level-grid';
+
+      levels.forEach(lv => {
+        const progress = loadProgress(lv.id);
+        const locked = isLocked(lv);
+
+        const card = document.createElement('div');
+        card.className = 'level-card'
+          + (locked ? ' locked' : '')
+          + (progress.stars > 0 && progress.stars < 3 ? ' current' : '')
+          + (progress.stars >= 3 ? ' done' : '');
+
+        // 星星
+        let starsHtml = '';
+        for (let i = 1; i <= 3; i++) {
+          starsHtml += `<span class="${progress.stars >= i ? 'on' : 'off'}">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </span>`;
+        }
+
+        card.innerHTML = `
+          <div class="num">${lv.isDaily ? 'D' : lv.index}</div>
+          <div class="name">${lv.isDaily ? lv.title.replace('每日挑战', '') : lv.title}${locked ? ' 🔒' : ''}</div>
+          <div class="mini-stars">${starsHtml}</div>
+        `;
+
+        if (!locked) {
+          card.onclick = () => location.href = `game.html?level=${lv.id}`;
+        }
+        grid.appendChild(card);
+      });
+
+      block.appendChild(grid);
+      list.appendChild(block);
+    });
+  }
+
+  render();
+
+  // 注册 Service Worker（PWA 离线）
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
