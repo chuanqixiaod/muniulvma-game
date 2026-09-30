@@ -689,6 +689,12 @@
 
 <script src="levels.js"></script>
 <script>
+/* ========= 入口重定向 ========= */
+// 没有 level 参数 → 跳到选卷页
+if (!new URLSearchParams(location.search).get('level')) {
+  location.replace('level-select.html');
+}
+
 /* ========= 关卡加载 ========= */
 const LEVEL_ID = getLevelIdFromUrl();
 const LEVEL_RAW = findLevelById(LEVEL_ID) || LEVELS[0];
