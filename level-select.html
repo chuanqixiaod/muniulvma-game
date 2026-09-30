@@ -40,7 +40,11 @@
     min-height: -webkit-fill-available;
     min-height: 100dvh;
     background: var(--paper);
-    position: relative; overflow: hidden;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
@@ -232,13 +236,20 @@
     const list = document.getElementById('list');
     list.innerHTML = '';
 
-    getVolumes().forEach(vol => {
-      const levels = getLevelsOfVolume(vol);
+    // 先渲染每日挑战（如果有），再渲染正卷
+    const dailyLv = LEVELS.find(l => l.isDaily);
+    const normalVolumes = getVolumes().filter(v => v !== 99);
 
-      // 卷标题
+    const allBlocks = [];
+    if (dailyLv) allBlocks.push({ daily: true, levels: [dailyLv] });
+    for (const vol of normalVolumes) {
+      allBlocks.push({ vol, levels: getLevelsOfVolume(vol) });
+    }
+
+    allBlocks.forEach(({ daily, vol, levels }) => {
       const block = document.createElement('div');
       block.className = 'volume-block';
-      if (vol === 99) {
+      if (daily) {
         block.innerHTML = `<div class="vol-title daily-title">⭐ 每日挑战</div>`;
       } else {
         block.innerHTML = `<div class="vol-title">第 ${CHINESE_NUM[vol]} 卷 · ${VOL_NAMES[vol] || ''}</div>`;
