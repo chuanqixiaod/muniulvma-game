@@ -408,9 +408,11 @@ function getLevelsOfVolume(vol) {
  * 返回：下一关对象 | null（最后一关）
  */
 function getNextLevel(current) {
-  const idx = LEVELS.findIndex(l => l.id === current.id);
-  if (idx < 0 || idx >= LEVELS.length - 1) return null;
-  return LEVELS[idx + 1];
+  // 跳过每日挑战，只在正卷关卡之间跳转
+  const ordered = LEVELS.filter(l => !l.isDaily);
+  const idx = ordered.findIndex(l => l.id === current.id);
+  if (idx < 0 || idx >= ordered.length - 1) return null;
+  return ordered[idx + 1];
 }
 
 /**
