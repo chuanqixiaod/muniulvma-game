@@ -693,6 +693,7 @@
 const LEVEL_ID = getLevelIdFromUrl();
 const LEVEL_RAW = findLevelById(LEVEL_ID) || LEVELS[0];
 const LEVEL = {
+  id: LEVEL_RAW.id, volume: LEVEL_RAW.volume, index: LEVEL_RAW.index, title: LEVEL_RAW.title,
   cols: LEVEL_RAW.cols, rows: LEVEL_RAW.rows,
   maxSlots: LEVEL_RAW.maxSlots, available: LEVEL_RAW.available,
   optimal: LEVEL_RAW.optimal, winCondition: LEVEL_RAW.winCondition,
@@ -1738,6 +1739,122 @@ window.TEST_CASES = {
     {type:'drop'},
   ],
   // 总槽数 36，≤ optimal=40 ✓
+
+  /* ===== 第二卷 · 搬运（v2-2/v2-4） ===== */
+  'v2-2': [
+    // 墙在 col3 全列，绕 row4 底部通行
+    // Phase1: (0,0)→P1(2,0)→row4→x=7→goal(7,0)
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'right'}, // right→down
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'left'},  // down→right
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'left'},  // right→up
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+    // Phase2: (7,0)→P2(5,0)→row4→goal(7,0)
+    {type:'left'},  // up→left
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'left'},  // left→down
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'left'},  // down→right
+    {type:'forward'},{type:'forward'},
+    {type:'left'},  // right→up
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+  ],
+
+  'v2-4': [
+    // 中央 col4 全墙，两边各一包
+    // Phase1: (0,0)→P1(2,2)→绕row5→goal(8,0)
+    {type:'right'}, // right→down
+    {type:'forward'},{type:'forward'},
+    {type:'left'},  // down→right
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'right'}, // right→down
+    {type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'left'},  // down→right
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'left'},  // right→up
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+    // Phase2: (8,0)→P2(6,2)→绕row5→goal(8,0)
+    {type:'left'},  // up→left
+    {type:'forward'},{type:'forward'},
+    {type:'left'},  // left→down
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'forward'},{type:'forward'},{type:'forward'}, // 继续 down 到 row5
+    {type:'left'},  // down→right
+    {type:'forward'},{type:'forward'},
+    {type:'left'},  // right→up
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+  ],
+
+  /* ===== 第四卷 · 诡道（v4-1/v4-3） ===== */
+  'v4-1': [
+    // 6×6 无墙，两包往返搬运
+    // Phase1: (0,0)→P1(2,2)→goal(5,5)
+    {type:'forward'},{type:'forward'},{type:'right'},
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'left'},
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+    // Phase2: (5,5)→P2(4,4)→goal(5,5)
+    {type:'left'},{type:'forward'},{type:'left'},{type:'forward'},{type:'grab'},
+    {type:'left'},{type:'forward'},{type:'left'},{type:'forward'},{type:'drop'},
+  ],
+
+  'v4-3': [
+    // 每个零件送不同终点：P1→(7,0), P2→(7,5)
+    // Phase1: (0,0)→P1(2,2)→target(7,0)
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'left'},
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'left'},
+    {type:'forward'},{type:'forward'},{type:'drop'},
+    // Phase2: (7,0)→P2(5,2)→target(7,5)
+    {type:'left'},{type:'forward'},{type:'forward'},{type:'left'},
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'left'},{type:'forward'},{type:'forward'},{type:'right'},
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+  ],
+
+  /* ===== 第五卷 · 终卷（v5-1/v5-2） ===== */
+  'v5-1': [
+    // col4 在 row3 有缺口，row4 多墙，row6 全通
+    // Phase1: (0,0)→(0,3)→P1(2,3)→穿缺口→(7,3)→goal(7,6)
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'left'},{type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+    // Phase2: (7,6)→沿row6左走到(3,6)→沿col3上走到(3,3)→P2(6,3)→goal
+    {type:'right'}, // down→left
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'right'}, // left→up
+    {type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'right'}, // up→right
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'forward'},{type:'right'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+  ],
+
+  'v5-2': [
+    // 8×8 无墙，4包送goal(7,7)
+    // Phase1: (0,0)→P1(2,2)→goal
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'left'},
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+    // Phase2: (7,7)→P2(5,2)→goal
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'right'},
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'right'},
+    {type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'drop'},
+    // Phase3: (7,7)→P3(2,5)→goal
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},{type:'forward'},
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'drop'},
+    // Phase4: (7,7)→P4(5,5)→goal
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'right'},
+    {type:'forward'},{type:'forward'},{type:'grab'},
+    {type:'right'},{type:'forward'},{type:'forward'},{type:'right'},
+    {type:'forward'},{type:'forward'},{type:'drop'},
+  ],
 };
 
 console.log('✅ TEST_CASES 已挂载，共 ' + Object.keys(TEST_CASES).length + ' 关');
