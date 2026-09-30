@@ -431,7 +431,7 @@ function calcStars(score, optimal) {
  */
 function getLevelIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  return params.get('level') || 'v1-3'; // 默认给第三关（有零件的关卡）
+  return params.get('level') || 'v1-1'; // 默认从第一关开始
 }
 
 /**
