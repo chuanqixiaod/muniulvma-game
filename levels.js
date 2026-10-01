@@ -416,16 +416,17 @@ function getNextLevel(current) {
 }
 
 /**
- * 计算三星
+ * 计算三星（百分比制）
  * score = 实际指令数
  * optimal = 关卡设计的最优解
- * 返回：1 | 2 | 3
+ * 返回：0 | 1 | 2 | 3
  */
 function calcStars(score, optimal) {
+  if (!optimal || optimal <= 0) return score <= 10 ? 3 : 1;
   if (score <= optimal) return 3;
-  if (score <= optimal + 2) return 2;
-  if (score <= optimal + 4) return 1;
-  return 0;
+  if (score <= Math.ceil(optimal * 1.2)) return 2;   // ±20% = 2★
+  if (score <= Math.ceil(optimal * 1.5)) return 1;   // +50% = 1★
+  return 0;                                           // 超 50% = 0★（通关但记录）
 }
 
 /**

@@ -308,6 +308,36 @@
   @keyframes carryBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
 
   .vapor-wrap { position:absolute; z-index:11; pointer-events:none; }
+
+  /* ========= 通关印章落下 ========= */
+  .win-seal {
+    position: absolute; z-index: 200; pointer-events: none;
+    top: 50%; left: 50%;
+    width: 100px; height: 100px;
+    margin: -50px 0 0 -50px;
+    background: linear-gradient(135deg, #c0392b, #8b2920);
+    border: 3px solid #5a1a14;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "STKaiti", serif; font-size: 42px;
+    color: #fff; font-weight: 800;
+    transform: rotate(-12deg) scale(0);
+    box-shadow:
+      0 0 0 4px rgba(192,57,43,0.3),
+      0 0 0 7px rgba(192,57,43,0.15),
+      0 10px 30px rgba(192,57,43,0.5);
+    animation: sealDrop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+  }
+  @keyframes sealDrop {
+    0% { opacity: 0; transform: rotate(-12deg) scale(2) translateY(-80px); }
+    70% { opacity: 1; transform: rotate(-12deg) scale(1.15) translateY(0); }
+    100% { opacity: 1; transform: rotate(-12deg) scale(1) translateY(0); }
+  }
+  .win-seal::before {
+    content: ''; position: absolute; inset: -2px;
+    border-radius: 10px;
+    background: repeating-linear-gradient(45deg, transparent 0 4px, rgba(255,255,255,0.06) 4px 8px);
+  }
   .vapor {
     position:absolute; width:8px; height:8px; border-radius:50%;
     background: radial-gradient(circle, rgba(180,160,140,0.5), transparent 70%);
@@ -846,7 +876,7 @@ function initState() {
       targetX: p.targetX, targetY: p.targetY,
     })),
     currentStep: -1, timer: null,
-    running: false, speed: 1, stopped: false, stars: 0,
+    running: false, speed: 1, stopped: false, stars: 0, totalSteps: 0,
     expandedProgram: null, // 预处理展开后的纯执行数组
     condStack: [],         // ✅ 条件栈：跟踪 ifWall/else/endif 的进入方式
     longPressTimer: null,
@@ -1389,6 +1419,7 @@ function stepOnce() {
             saveProgress(LEVEL.id, state.stars, state.program.length);
             Sound.win();
             showMsg('🎉 通关！', 'ok'); stopProg();
+            winSealDrop();
             setTimeout(() => location.href = `result.html?level=${LEVEL.id}`, 1200);
           }
           return true;
@@ -1407,6 +1438,17 @@ function stepOnce() {
 function runTick() {
   if (!state.running) return;
   const prog = state.expandedProgram || state.program;
+
+  // 死循环保护：loop 关 expandedProgram 会重复，用总步数上限
+  state.totalSteps = (state.totalSteps || 0) + 1;
+  const MAX_STEPS = Math.max(prog.length * 3, 500);
+  if (state.totalSteps > MAX_STEPS) {
+    state.running = false; state.stopped = true;
+    showMsg('⚠️ 执行步数过多，可能有死循环', 'err');
+    stopProg();
+    return;
+  }
+
   const ok = stepOnce();
   if (!ok) {
     if (state.currentStep >= prog.length && !state.stopped) {
@@ -1422,6 +1464,7 @@ function runTick() {
           state.stars = calcStars(state.program.length, LEVEL.optimal);
           saveProgress(LEVEL.id, state.stars, state.program.length);
           showMsg('🎉 通关！', 'ok');
+          winSealDrop();
           setTimeout(() => location.href = `result.html?level=${LEVEL.id}`, 1200);
         } else {
           showMsg('指令跑完，但零件没送完', 'err');
@@ -1432,6 +1475,7 @@ function runTick() {
           state.stars = calcStars(state.program.length, LEVEL.optimal);
           saveProgress(LEVEL.id, state.stars, state.program.length);
           showMsg('🎉 通关！', 'ok');
+          winSealDrop();
           setTimeout(() => location.href = `result.html?level=${LEVEL.id}`, 1200);
         } else {
           showMsg('指令跑完，但没到终点', 'err');
@@ -1534,6 +1578,19 @@ function showMsg(text, type) {
   m.textContent = text; m.style.display = 'block';
   if (msgTimer) clearTimeout(msgTimer);
   msgTimer = setTimeout(() => m.style.display = 'none', type === 'ok' ? 1400 : 1100);
+}
+
+/* ========= 通关印章落下动画 ========= */
+function winSealDrop() {
+  const phone = document.querySelector('.phone');
+  if (!phone) return;
+  const seal = document.createElement('div');
+  seal.className = 'win-seal';
+  seal.textContent = '完';
+  // 印章文字用楷体
+  seal.style.fontFamily = '"STKaiti", serif';
+  phone.appendChild(seal);
+  setTimeout(() => seal.remove(), 1300);
 }
 
 /* ========= 横屏检测 ========= */
