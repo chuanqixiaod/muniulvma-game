@@ -122,6 +122,29 @@
     padding: 10px;
     min-height: 0;
   }
+
+  /* 新手引导 Hint */
+  .hint-bar {
+    position: relative; z-index: 2;
+    margin: 6px 14px 4px;
+    padding: 8px 10px;
+    background: linear-gradient(135deg, rgba(205,127,50,0.08), rgba(90,138,122,0.08));
+    border: 1px solid rgba(205,127,50,0.25);
+    border-radius: 8px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--ink-light);
+    animation: hintFade 0.4s ease-out;
+  }
+  @keyframes hintFade { 0% { opacity: 0; transform: translateY(-6px); } 100% { opacity: 1; transform: translateY(0); } }
+  .hint-bar .hint-icon { font-size: 14px; flex-shrink: 0; }
+  .hint-bar .hint-text { flex: 1; line-height: 1.5; letter-spacing: 0.3px; }
+  .hint-bar .hint-close {
+    font-size: 16px; color: rgba(90,74,58,0.4); cursor: pointer;
+    width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; transition: all 0.15s;
+  }
+  .hint-bar .hint-close:hover { background: rgba(90,74,58,0.1); color: var(--ink); }
+
   .map-panel {
     position: relative;
     padding: 12px;
@@ -652,6 +675,13 @@
     <div class="top-btn" id="soundBtn" onclick="toggleSound()" title="音效">🔊</div>
   </div>
 
+  <!-- 新手引导 Hint -->
+  <div class="hint-bar" id="hintBar">
+    <span class="hint-icon">💡</span>
+    <span class="hint-text" id="hintText">加载中…</span>
+    <span class="hint-close" id="hintClose">×</span>
+  </div>
+
   <!-- 地图 -->
   <div class="map-wrap">
     <div class="map-panel">
@@ -705,10 +735,30 @@ const LEVEL = {
   optimal: LEVEL_RAW.optimal, winCondition: LEVEL_RAW.winCondition,
   map: LEVEL_RAW.map, start: LEVEL_RAW.start,
   packages: LEVEL_RAW.packages,
+  hint: LEVEL_RAW.hint || '',
 };
 const CHINESE_NUM = ['','一','二','三','四','五'];
 document.getElementById('titleH4').innerHTML = `卷${CHINESE_NUM[LEVEL_RAW.volume]} · 第 ${LEVEL_RAW.index} 关 <small>「${LEVEL_RAW.title}」</small>`;
 document.title = `木牛流马 · 卷${LEVEL_RAW.volume}-${LEVEL_RAW.index}`;
+
+// 渲染新手引导 Hint
+(function() {
+  const bar = document.getElementById('hintBar');
+  const text = document.getElementById('hintText');
+  const close = document.getElementById('hintClose');
+  const storageKey = 'muniu_hint_hidden_' + LEVEL.id;
+  if (localStorage.getItem(storageKey)) {
+    bar.style.display = 'none';
+  } else if (LEVEL.hint) {
+    text.textContent = LEVEL.hint;
+  } else {
+    bar.style.display = 'none';
+  }
+  close.onclick = function() {
+    bar.style.display = 'none';
+    localStorage.setItem(storageKey, '1');
+  };
+})();
 
 /* ========= 响应式格子尺寸 ========= */
 function calcCellSize() {

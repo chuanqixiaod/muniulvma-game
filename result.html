@@ -202,6 +202,40 @@
   .spark { position: absolute; width: 4px; height: 4px; background: var(--cinnabar); border-radius: 50%; pointer-events: none; animation: spark 1.5s ease-out infinite; opacity: 0.6; }
   @keyframes spark { 0% { opacity: 0.8; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-60px) scale(0); } }
 
+  /* 全部通关 — 烟花 */
+  .firework { position: absolute; pointer-events: none; z-index: 3; }
+  .firework .fw-core { width: 5px; height: 5px; border-radius: 50%; animation: fwRise 0.6s ease-out forwards; }
+  .firework .fw-burst { position: absolute; inset: -30px; width: 60px; height: 60px; border-radius: 50%; animation: fwBurst 0.8s ease-out 0.5s forwards; }
+  @keyframes fwRise { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-80px) scale(0.3); } }
+  @keyframes fwBurst {
+    0% { opacity: 0.9; transform: scale(0.1); }
+    60% { opacity: 0.8; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.3); }
+  }
+  .firework .fw-particle {
+    position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    top: 50%; left: 50%;
+    animation: fwP 0.9s ease-out 0.5s forwards;
+  }
+  @keyframes fwP {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--fx)), calc(-50% + var(--fy))) scale(0.2); }
+  }
+
+  /* 全部通关大标题 */
+  .allclear-title {
+    position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+    font-family: "STKaiti", serif; font-size: 36px;
+    color: var(--cinnabar); letter-spacing: 12px; font-weight: 700;
+    text-shadow: 0 0 20px rgba(192,57,43,0.4), 0 2px 4px rgba(0,0,0,0.1);
+    animation: allclearIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s both;
+  }
+  @keyframes allclearIn {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.3); letter-spacing: 4px; }
+    60% { opacity: 1; transform: translateX(-50%) scale(1.1); letter-spacing: 14px; }
+    100% { opacity: 1; transform: translateX(-50%) scale(1); letter-spacing: 12px; }
+  }
+
 </style>
 </head>
 <body>
@@ -284,6 +318,7 @@
   if (!next) {
     btnNext.textContent = '全部通关 ✓';
     btnNext.disabled = true;
+    triggerAllClear();
   } else {
     btnNext.textContent = `下一关 · 第 ${next.index} 关 →`;
   }
@@ -301,6 +336,65 @@
     s.style.animationDelay = (Math.random() * 1.5) + 's';
     s.style.background = Math.random() > 0.5 ? '#cd7f32' : '#4a7c59';
     phone.appendChild(s);
+  }
+
+  // 全部通关 — 烟花 + 大标题
+  function triggerAllClear() {
+    // 大标题
+    const title = document.createElement('div');
+    title.className = 'allclear-title';
+    title.textContent = '大功告成';
+    phone.appendChild(title);
+
+    // 循环放烟花
+    const colors = ['#c0392b', '#cd7f32', '#5a8a7a', '#3d2e1f', '#a85c2a'];
+    let fwCount = 0;
+    const maxFw = 8;
+
+    function launchFirework() {
+      if (fwCount >= maxFw) return;
+      fwCount++;
+
+      const fw = document.createElement('div');
+      fw.className = 'firework';
+      const x = 40 + Math.random() * 300;
+      const y = 80 + Math.random() * 160;
+      fw.style.left = x + 'px';
+      fw.style.top = y + 'px';
+
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      // 上升核心
+      const core = document.createElement('div');
+      core.className = 'fw-core';
+      core.style.background = color;
+      core.style.boxShadow = `0 0 8px ${color}`;
+      fw.appendChild(core);
+
+      // 爆炸光晕
+      const burst = document.createElement('div');
+      burst.className = 'fw-burst';
+      burst.style.background = `radial-gradient(circle, ${color}55, transparent 70%)`;
+      fw.appendChild(burst);
+
+      // 粒子散射
+      for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'fw-particle';
+        const angle = (i / 12) * Math.PI * 2;
+        const dist = 60 + Math.random() * 40;
+        p.style.setProperty('--fx', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--fy', Math.sin(angle) * dist + 'px');
+        p.style.background = color;
+        fw.appendChild(p);
+      }
+
+      phone.appendChild(fw);
+      setTimeout(() => fw.remove(), 1800);
+      setTimeout(launchFirework, 300 + Math.random() * 500);
+    }
+
+    setTimeout(launchFirework, 600);
   }
 </script>
 </body>
