@@ -1222,7 +1222,13 @@ function renderSlots() {
     }
   });
 
-  for (let i = 0; i < LEVEL.maxSlots; i++) {
+  // 动态渲染：指令从最左紧密排列，右侧只留 1 个空槽提示"还能加"
+  // 空数组时给 3 个空槽兜底，让用户知道往哪拖
+  const fillCount = state.program.length;
+  const emptyHint = fillCount === 0 ? 3 : 1;
+  const totalSlots = Math.min(fillCount + emptyHint, LEVEL.maxSlots);
+
+  for (let i = 0; i < totalSlots; i++) {
     const s = document.createElement('div');
     s.className = 'slot';
     const cmd = state.program[i];
