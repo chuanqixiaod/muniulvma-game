@@ -340,6 +340,8 @@
 
   // 全部通关 — 烟花 + 大标题
   function triggerAllClear() {
+    const phone = document.querySelector('.phone');
+    if (!phone) return;
     // 大标题
     const title = document.createElement('div');
     title.className = 'allclear-title';
